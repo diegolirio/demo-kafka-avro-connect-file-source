@@ -15,7 +15,13 @@ file=/data/test.csv
 topic=connect-test
 ````
 
-- FileSource Plugin
+```shell
+docker exec -it kafka-connect bash
+cd /data
+echo testeeeee >> test.csv
+```
+
+- FileSource Plugin (Install)
 
 ```shell
 confluent-hub install --no-prompt jcustenborder/kafka-connect-spooldir:1.0.31
