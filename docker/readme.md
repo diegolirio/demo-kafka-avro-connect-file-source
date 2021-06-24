@@ -1,9 +1,8 @@
 
-## Kafka Run
+## Kafka Connect
 
--  Official 
 ```shell
-docker-compose up
+docker-compose -f docker-compose-connect up
 ```
 
 ### kafka Connect FileSource
@@ -12,9 +11,15 @@ docker-compose up
 name=local-file-source
 connector.class=FileStreamSource
 tasks.max=1
-file=/Users/ddamacena/data/test.txt
+file=/data/test.csv
 topic=connect-test
 ````
+
+- FileSource Plugin
+
+```shell
+confluent-hub install --no-prompt jcustenborder/kafka-connect-spooldir:1.0.31
+```
 
 Ref..:
 
