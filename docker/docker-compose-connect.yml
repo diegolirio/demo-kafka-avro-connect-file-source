@@ -2,6 +2,18 @@ version: "3"
 
 services:
 
+  mysql:
+    image: mysql:8
+    ports:
+      - 3306:3306
+    #volumes:
+    #  - ~/docker-volume/mysql:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_PASSWORD=P@55W#RD
+      - MYSQL_USER=kafka-user
+      - MYSQL_DATABASE=customerdb
+
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     environment:

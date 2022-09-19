@@ -101,7 +101,7 @@
 							<goal>schema</goal>
 						</goals>
 						<configuration>
-							<sourceDirectory>src/main/resources/avro</sourceDirectory>
+							<sourceDirectory>src/main/java/avro</sourceDirectory>
 
 							<outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
 							<stringType>String</stringType>

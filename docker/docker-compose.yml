@@ -1,6 +1,19 @@
 version: "3.5"
 
 services:
+
+  mysql:
+    image: mysql:8
+    ports:
+      - 3306:3306
+    #volumes:
+    #  - ~/docker-volume/mysql:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_PASSWORD=P@55W#RD
+      - MYSQL_USER=kafka-user
+      - MYSQL_DATABASE=customer
+
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     hostname: zookeeper
@@ -10,6 +23,8 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    depends_on:
+      - mysql
 
   broker:
     image: confluentinc/cp-server:latest
@@ -17,6 +32,7 @@ services:
     container_name: broker
     depends_on:
       - zookeeper
+      - mysql
     ports:
       - "9092:9092"
     environment:
@@ -33,6 +49,7 @@ services:
       CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
       CONFLUENT_METRICS_ENABLE: "true"
       CONFLUENT_SUPPORT_CUSTOMER_ID: "anonymous"
+
 
   kafka-tools:
     image: confluentinc/cp-kafka:latest
@@ -85,6 +102,7 @@ services:
       - zookeeper
       - broker
       - schema-registry
+      - mysql
     ports:
       - "8083:8083"
     environment:
