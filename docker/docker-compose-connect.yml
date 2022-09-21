@@ -3,16 +3,21 @@ version: "3"
 services:
 
   mysql:
-    image: mysql:8
+    image: mysql:5.7
+    container_name: mysql
     ports:
       - 3306:3306
-    #volumes:
-    #  - ~/docker-volume/mysql:/var/lib/mysql
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_PASSWORD=P@55W#RD
       - MYSQL_USER=kafka-user
       - MYSQL_DATABASE=customerdb
+      #- MYSQL_TCP_PORT=3307
+    volumes:
+      - ./dump:/docker-entrypoint-initdb.d
+      #- ~/data:/var/lib/mysql
+    expose:
+      - "3306"
 
   zookeeper:
     image: confluentinc/cp-zookeeper:latest

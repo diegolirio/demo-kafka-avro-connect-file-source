@@ -15,8 +15,7 @@ curl http://localhost:8083/connectors/
 
 ## Creating a new connector (Source)
 
-> Entendendo o RequestBody
-
+> RequestBody
 ```json
 {
   "name": "db-connector", // Nome do connector
@@ -59,44 +58,73 @@ curl http://localhost:8083/connector-plugins
 
 > Trying again with a connector available. 
 
-```json
-{
-  "name" : "mysqldb-customer-connector",
-  "config": {
-      "connector.class": "io.debezium.connector.mysql.MySqlConnector",
-      "topic.prefix": "mysql_",
-      "connection.host": "mysql",
-      "connection.port": "3306",
-      "connection.user": "kafka-user",
-      "connection.password": "P@55W#RD",
-      "db.name": "customerdb",
-      "table.whitelist": "customer",
-      "timestamp.column.name": "created_at",
-      "output.data.format": "JSON",
-      "db.timezone": "UCT",
-      "tasks.max": "1"
-  }
-}
+```sh 
+curl -i -X PUT -H  "Content-Type:application/json" \
+    http://localhost:8083/connectors/source-debezium-customerdb-00/config \
+    -d '{
+            "connector.class": "io.debezium.connector.mysql.MySqlConnector",
+            "value.converter": "io.confluent.connect.json.JsonSchemaConverter",
+            "value.converter.schemas.enable": "true",
+            "value.converter.schema.registry.url": "AAA",
+            "database.hostname": "mysql",
+            "database.port": "3306",
+            "database.user": "root",
+            "database.password": "root",
+            "database.server.id": "42",
+            "database.server.name": "mysql",
+            "table.whitelist": "customerdb.customer",
+            "database.history.kafka.bootstrap.servers": "kafka:9092",
+            "database.history.kafka.topic": "customer.db",
+            "topic.creation.default.replication.factor": "1",
+            "topic.creation.default.partitions": "1",
+            "decimal.handling.mode": "double",
+            "include.schema.changes": "true",
+            "transforms": "unwrap,addTopicPrefix",
+            "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+            "transforms.addTopicPrefix.type":"org.apache.kafka.connect.transforms.RegexRouter",
+            "transforms.addTopicPrefix.regex":"(.*)",
+            "transforms.addTopicPrefix.replacement":"mysql-debezium-$1"
+    }'
 ```
+
+```output
+kafka-connect     | Caused by: java.lang.IllegalArgumentException: Could not find a 'KafkaClient' entry in the JAAS configuration. System property 'java.security.auth.login.config' is not set
+kafka-connect     | 	at org.apache.kafka.common.security.JaasContext.defaultContext(JaasContext.java:133)
+kafka-connect     | 	at org.apache.kafka.common.security.JaasContext.load(JaasContext.java:98)
+kafka-connect     | 	at org.apache.kafka.common.security.JaasContext.loadClientContext(JaasContext.java:84)
+kafka-connect     | 	at org.apache.kafka.common.network.ChannelBuilders.create(ChannelBuilders.java:134)
+kafka-connect     | 	at org.apache.kafka.common.network.ChannelBuilders.clientChannelBuilder(ChannelBuilders.java:73)
+```
+
+We can delete a connector using the command bellow:
 
 ```shell
-curl -i -X POST -H "Accept:application/json" \
-   -H "Content-Type:application/json" http://localhost:8083/connectors/ \
-    -d '{"name" : "mysqldb-customer-connector", "config": { "connector.class": "io.debezium.connector.mysql.MySqlConnector","topic.prefix" : "mysql_","connection.host" : "mysql","connection.port" : "3306","connection.user" : "kafka-user","connection.password": "P@55W#RD","db.name": "customerdb","table.whitelist": "customer","timestamp.column.name": "created_at","output.data.format": "JSON","db.timezone": "UCT","tasks.max" : "1", "database.history.kafka.bootstrap.servers": "kafka:9092","database.history.kafka.topic": "schema-changes.db"} }'
+# curl -X DELETE http://localhost:8083/connectors/{name}
+curl -X DELETE http://localhost:8083/connectors/source-debezium-customerdb-00
+```
+
+Status
+```shell
+curl http://localhost:8083/connectors/source-debezium-customerdb-00/status
+```
+
+Topics
+```shell
+curl http://localhost:8083/connectors/source-debezium-customerdb-00/topics
 ```
 
 
 
-Deleting a connector
+After createing the MySQL Connector we are going to insert a line in the `customer` table:
 
 ```shell
-curl -X DELETE http://localhost:8083/connectors/{name}
+docker exec -it mysql bash
+mysql -proot -uroot
+use customerdb;
+insert into customer(firstname,lastname,age) values('Diego', 'Lirio', 27);
 ```
-
 
 Ref.: 
-Mysql -> /connector-plugins/{connectorType}/config/validate   
-
-Rest -> https://docs.confluent.io/platform/current/connect/references/restapi.html#kconnect-rest-interface   
-
+https://developer.confluent.io/learn-kafka/kafka-connect/rest-api/
+Rest -> https://docs.confluent.io/platform/current/connect/references/restapi.html#kconnect-rest-interface
 Video -> https://www.youtube.com/watch?v=1EenWEm-5dg&t=378s       
